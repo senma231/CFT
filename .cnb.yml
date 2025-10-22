@@ -29,14 +29,13 @@ $:
         - name: 构建前端
           script: npm run build:renderer
 
-        - name: 构建主进程
-          script: npm run build:main
-
         - name: 打包 Windows 应用
           script: |
             npx electron-builder --win --dir --x64
             echo "=== 构建产物列表 ==="
             ls -lh build-output/
+            echo "=== win-unpacked 内容 ==="
+            ls -lh build-output/win-unpacked/ | head -20
 
         - name: 压缩构建产物
           script: |
@@ -80,12 +79,9 @@ $:
         - name: 构建前端
           script: npm run build:renderer
 
-        - name: 构建主进程
-          script: npm run build:main
-
         - name: 打包 Linux 应用
           script: |
-            npm run build:linux
+            npx electron-builder --linux --x64
             echo "=== 构建产物列表 ==="
             ls -lh build-output/
 
@@ -128,14 +124,13 @@ $:
         - name: 构建前端
           script: npm run build:renderer
 
-        - name: 构建主进程
-          script: npm run build:main
-
         - name: 打包 Windows 应用
           script: |
             npx electron-builder --win --dir --x64
             echo "=== 构建产物列表 ==="
             ls -lh build-output/
+            echo "=== win-unpacked 内容 ==="
+            ls -lh build-output/win-unpacked/ | head -20
 
         - name: 压缩构建产物
           script: |
@@ -178,12 +173,9 @@ $:
         - name: 构建前端
           script: npm run build:renderer
 
-        - name: 构建主进程
-          script: npm run build:main
-
         - name: 打包 Linux 应用
           script: |
-            npm run build:linux
+            npx electron-builder --linux --x64
             echo "=== 构建产物列表 ==="
             ls -lh build-output/
 
