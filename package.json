@@ -134,11 +134,7 @@
     "forceCodeSigning": false,
     "electronDist": "node_modules/electron/dist",
     "electronVersion": "38.3.0",
-    "publish": {
-      "provider": "github",
-      "owner": "your-username",
-      "repo": "cloudflare-tunnel-manager"
-    }
+    "publish": null
   },
   "engines": {
     "node": ">=18.0.0",
