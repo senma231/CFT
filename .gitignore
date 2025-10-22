@@ -9,6 +9,9 @@ release/
 out/
 cnb/
 
+# CNB 归档文件
+archive/
+
 # 日志
 logs/
 *.log
