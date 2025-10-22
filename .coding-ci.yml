@@ -1,0 +1,51 @@
+# CODING CI/CD 配置文件
+# 用于自动打包 Electron 应用
+
+pipeline:
+  # 打包任务
+  build:
+    # 使用 Node.js 18 环境
+    docker:
+      image: node:18
+
+    # 环境变量
+    env:
+      - CSC_IDENTITY_AUTO_DISCOVERY=false
+
+    # 缓存 node_modules
+    cache:
+      - node_modules
+
+    # 构建步骤
+    steps:
+      - name: 安装依赖
+        script: |
+          echo "📦 安装依赖..."
+          npm ci
+
+      - name: 构建前端
+        script: |
+          echo "🎨 构建前端..."
+          npm run build:renderer
+
+      - name: 构建主进程
+        script: |
+          echo "⚙️ 构建主进程..."
+          npm run build:main
+
+      - name: 打包应用
+        script: |
+          echo "📦 打包应用..."
+          npm run pack
+          echo "✅ 打包完成"
+          ls -lh build-output/ || true
+
+      - name: 显示打包结果
+        script: |
+          echo "=== 打包产物 ==="
+          find build-output -type f -name "*.exe" -o -name "*.zip" || true
+
+    # 保存构建产物
+    artifacts:
+      - build-output/**/*
+

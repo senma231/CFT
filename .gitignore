@@ -49,6 +49,9 @@ coverage/
 *.ps1
 test-icons.js
 
+# GitHub 相关文件（CODING 不需要）
+.github/
+
 # 开发文档（排除所有中文文档，只保留核心文档）
 *修复*.md
 *说明*.md
@@ -60,17 +63,19 @@ test-icons.js
 *功能*.md
 *优化*.md
 *测试*.md
-*指南*.md
 *文档*.md
+*对比*.md
 Account_ID*.md
 Cloudflare*.md
 UI*.md
-GitHub-Actions*.md
+GitHub*.md
 快速开始*.md
 推送到*.md
 准备完成*.md
 完整使用*.md
 项目交接*.md
+如何推送*.md
+CODING-CI-使用指南.md
 
 # 图片文件夹（开发文档的截图）
 image/
