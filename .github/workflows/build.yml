@@ -12,6 +12,7 @@ permissions:
 jobs:
   build-windows:
     runs-on: windows-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -78,6 +79,7 @@ jobs:
 
   build-linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -133,8 +135,80 @@ jobs:
             build-output/CFT_linux_x64.deb
           retention-days: 7
 
+  build-macos:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build renderer
+        run: npm run build:renderer
+
+      - name: Create macOS icon from PNG
+        run: |
+          echo "=== Creating .icns file from PNG ==="
+          mkdir -p icon.iconset
+          # Create different sizes for iconset
+          sips -z 16 16     assets/icons/icon.png --out icon.iconset/icon_16x16.png
+          sips -z 32 32     assets/icons/icon.png --out icon.iconset/icon_16x16@2x.png
+          sips -z 32 32     assets/icons/icon.png --out icon.iconset/icon_32x32.png
+          sips -z 64 64     assets/icons/icon.png --out icon.iconset/icon_32x32@2x.png
+          sips -z 128 128   assets/icons/icon.png --out icon.iconset/icon_128x128.png
+          sips -z 256 256   assets/icons/icon.png --out icon.iconset/icon_128x128@2x.png
+          sips -z 256 256   assets/icons/icon.png --out icon.iconset/icon_256x256.png
+          sips -z 512 512   assets/icons/icon.png --out icon.iconset/icon_256x256@2x.png
+          sips -z 512 512   assets/icons/icon.png --out icon.iconset/icon_512x512.png
+          sips -z 1024 1024 assets/icons/icon.png --out icon.iconset/icon_512x512@2x.png
+          # Convert to icns
+          iconutil -c icns icon.iconset -o assets/icons/icon.icns
+          echo "✓ Created icon.icns"
+          ls -lh assets/icons/icon.icns
+
+      - name: Build macOS app
+        run: npx electron-builder --mac --${{ matrix.arch }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: List build output
+        run: |
+          echo "=== Build output ==="
+          ls -lh build-output/
+
+      - name: Rename macOS artifacts
+        run: |
+          cd build-output
+          # Rename DMG
+          if ls *.dmg 1> /dev/null 2>&1; then
+            for file in *.dmg; do
+              mv "$file" "CFT_macos_${{ matrix.arch }}.dmg"
+              echo "✓ Renamed to CFT_macos_${{ matrix.arch }}.dmg"
+            done
+          fi
+          ls -lh
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CFT_macos_${{ matrix.arch }}
+          path: build-output/CFT_macos_${{ matrix.arch }}.dmg
+          retention-days: 7
+
   release:
-    needs: [build-windows, build-linux]
+    needs: [build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
 
@@ -149,6 +223,16 @@ jobs:
         with:
           name: CFT_linux_x64
 
+      - name: Download macOS x64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: CFT_macos_x64
+
+      - name: Download macOS arm64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: CFT_macos_arm64
+
       - name: List downloaded files
         run: |
           echo "=== Downloaded artifacts ==="
@@ -161,6 +245,8 @@ jobs:
             CFT_windows_x64.zip
             CFT_linux_x64.AppImage
             CFT_linux_x64.deb
+            CFT_macos_x64.dmg
+            CFT_macos_arm64.dmg
           draft: false
           prerelease: false
           generate_release_notes: true
