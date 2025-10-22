@@ -95,9 +95,8 @@
       ],
       "icon": "assets/icons/icon.ico",
       "requestedExecutionLevel": "asInvoker",
-      "signAndEditExecutable": false,
       "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
-      "executableName": "CloudflareTunnelManager"
+      "executableName": "Cloudflare隧道管理器"
     },
     "linux": {
       "target": [

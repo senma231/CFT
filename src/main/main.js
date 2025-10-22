@@ -26,6 +26,7 @@ const store = new Store();
 // 全局变量
 let mainWindow;
 let tray;
+let isQuitting = false; // 标记用户是否主动退出
 
 // 应用配置
 const isDev = process.env.NODE_ENV === 'development' || process.argv.includes('--dev');
@@ -1281,26 +1282,39 @@ function createWindow() {
             if (require('fs').existsSync(icoPath)) {
                 return icoPath;
             }
+        } else if (process.platform === 'darwin') {
+            // macOS 使用 .icns 文件
+            const icnsPath = path.join(__dirname, '../../assets/icons/icon.icns');
+            if (require('fs').existsSync(icnsPath)) {
+                return icnsPath;
+            }
         }
-        // 其他平台或找不到 .ico 时使用 .png
+        // 其他平台或找不到特定格式时使用 .png
         return path.join(__dirname, '../../assets/icons/icon.png');
     };
 
-    // 创建浏览器窗口
-    mainWindow = new BrowserWindow({
+    // 创建浏览器窗口配置
+    const windowConfig = {
         width: 1200,
         height: 800,
         minWidth: 800,
         minHeight: 600,
         show: false,
-        icon: getIconPath(),
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
             preload: path.join(__dirname, '../preload/preload.js')
         }
-    });
+    };
+
+    // 只在非 macOS 平台设置 icon（macOS 使用 .icns 在打包时设置）
+    if (process.platform !== 'darwin') {
+        windowConfig.icon = getIconPath();
+    }
+
+    // 创建浏览器窗口
+    mainWindow = new BrowserWindow(windowConfig);
 
     // 加载构建后的渲染进程
     const indexPath = isDev
@@ -1324,6 +1338,11 @@ function createWindow() {
 
     // 处理窗口关闭事件（点击 X 按钮）
     mainWindow.on('close', (event) => {
+        // 如果用户主动退出，不阻止关闭
+        if (isQuitting) {
+            return;
+        }
+
         // 获取设置
         const settings = store.get('app.settings', {});
         const minimizeToTray = settings.minimizeToTray !== false; // 默认为 true
@@ -1433,7 +1452,7 @@ function createTray() {
                 label: '退出',
                 click: () => {
                     // 设置标志表示用户主动退出
-                    app.isQuitting = true;
+                    isQuitting = true;
                     app.quit();
                 }
             }
@@ -1476,7 +1495,7 @@ function createMenu() {
                     label: '退出',
                     accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
                     click: () => {
-                        app.isQuitting = true;
+                        isQuitting = true;
                         app.quit();
                     }
                 }
@@ -2050,9 +2069,13 @@ app.whenReady().then(() => {
     createWindow();
     createMenu();
 
+    // macOS 特有：点击 Dock 图标时重新创建窗口
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
+        } else if (mainWindow) {
+            // 如果窗口存在但被隐藏，显示它
+            mainWindow.show();
         }
     });
 });
@@ -2060,13 +2083,13 @@ app.whenReady().then(() => {
 // 当所有窗口都被关闭时的处理
 // 注意：当窗口隐藏到托盘时，不应该退出应用
 app.on('window-all-closed', () => {
-    // 如果用户主动退出（通过托盘菜单），则退出应用
-    if (app.isQuitting) {
+    // 如果用户主动退出（通过托盘菜单或应用菜单），则退出应用
+    if (isQuitting) {
         app.quit();
         return;
     }
 
-    // macOS 上通常不退出应用
+    // macOS 上通常不退出应用（除非用户主动退出）
     if (process.platform === 'darwin') {
         return;
     }
@@ -2085,8 +2108,12 @@ app.on('window-all-closed', () => {
 });
 
 // 应用退出前清理
-app.on('before-quit', () => {
+app.on('before-quit', (event) => {
     log.info('应用即将退出');
+
+    // 设置退出标志，确保窗口关闭事件不会阻止退出
+    isQuitting = true;
+
     // 停止所有隧道
     tunnelManager.tunnels.forEach(tunnel => {
         if (tunnel.status === 'running') {
