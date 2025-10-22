@@ -54,8 +54,8 @@ $:
         - name: 上传到 Release
           image: cnbcool/attachments:latest
           settings:
-            tag: $TAG_NAME
-            files: windows-build.zip
+            attachments:
+              - windows-build.zip
 
   # Linux 部署事件（通过 Tag 部署页面触发）
   tag_deploy.linux:
@@ -85,8 +85,9 @@ $:
         - name: 上传到 Release
           image: cnbcool/attachments:latest
           settings:
-            tag: $TAG_NAME
-            files: build-output/*.AppImage,build-output/*.deb
+            attachments:
+              - build-output/*.AppImage
+              - build-output/*.deb
 
   # 全平台部署事件（通过 Tag 部署页面触发）
   tag_deploy.all:
@@ -138,8 +139,8 @@ $:
         - name: 上传 Windows 产物到 Release
           image: cnbcool/attachments:latest
           settings:
-            tag: $TAG_NAME
-            files: windows-build.zip
+            attachments:
+              - windows-build.zip
 
     - name: deploy-all-linux
       docker:
@@ -167,8 +168,9 @@ $:
         - name: 上传 Linux 产物到 Release
           image: cnbcool/attachments:latest
           settings:
-            tag: $TAG_NAME
-            files: build-output/*.AppImage,build-output/*.deb
+            attachments:
+              - build-output/*.AppImage
+              - build-output/*.deb
 
 # 分支名
 main:
