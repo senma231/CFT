@@ -28,7 +28,10 @@ $:
           script: npm run build:main
 
         - name: 打包 Windows 应用
-          script: npm run pack
+          script: |
+            npx electron-builder --win --dir
+            echo "=== 构建产物列表 ==="
+            ls -lh build-output/
 
         - name: 压缩构建产物
           script: |
@@ -36,6 +39,8 @@ $:
             zip -r windows-build.zip win-unpacked/
             mv windows-build.zip ..
             cd ..
+            echo "=== 压缩完成 ==="
+            ls -lh windows-build.zip
 
         - name: 上传到 Release
           image: cnbcool/attachments:latest
@@ -99,7 +104,10 @@ $:
           script: npm run build:main
 
         - name: 打包 Windows 应用
-          script: npm run pack
+          script: |
+            npx electron-builder --win --dir
+            echo "=== 构建产物列表 ==="
+            ls -lh build-output/
 
         - name: 压缩构建产物
           script: |
@@ -107,6 +115,8 @@ $:
             zip -r windows-build.zip win-unpacked/
             mv windows-build.zip ..
             cd ..
+            echo "=== 压缩完成 ==="
+            ls -lh windows-build.zip
 
         - name: 上传 Windows 产物到 Release
           image: cnbcool/attachments:latest
