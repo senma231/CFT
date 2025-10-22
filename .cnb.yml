@@ -13,6 +13,11 @@ $:
       env:
         CSC_IDENTITY_AUTO_DISCOVERY: "false"
       stages:
+        - name: 安装系统依赖
+          script: |
+            apt-get update
+            apt-get install -y zip
+
         - name: 安装依赖
           script: npm ci
 
@@ -79,6 +84,11 @@ $:
       env:
         CSC_IDENTITY_AUTO_DISCOVERY: "false"
       stages:
+        - name: 安装系统依赖
+          script: |
+            apt-get update
+            apt-get install -y zip
+
         - name: 安装依赖
           script: npm ci
 
