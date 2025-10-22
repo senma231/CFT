@@ -47,9 +47,38 @@ main:
             echo "=== Windows 打包产物 ==="
             find build-output -type f -name "*.exe" || true
 
-      # 保存构建产物
-      artifacts:
-        - build-output/**/*
+        - name: 压缩构建产物
+          script: |
+            echo "📦 压缩构建产物..."
+            cd build-output
+            zip -r windows-build.zip win-unpacked/
+            ls -lh windows-build.zip
+            mv windows-build.zip ..
+            cd ..
+
+        - name: 创建 Release
+          type: git:release
+          options:
+            tag: "windows-latest"
+            title: "Windows 构建产物 - 最新版"
+            description: |
+              ## Windows 客户端构建产物
+
+              **构建信息**：
+              - 构建时间: $(date +"%Y-%m-%d %H:%M:%S")
+              - 分支: ${CNB_BRANCH}
+              - 提交: ${CNB_COMMIT_SHORT}
+
+              **下载说明**：
+              - 下载 `windows-build.zip`
+              - 解压后运行 `win-unpacked/Cloudflare隧道管理器.exe`
+
+        - name: 上传构建产物到 Release
+          image: cnbcool/attachments:latest
+          settings:
+            tag: "windows-latest"
+            files:
+              - windows-build.zip
 
     # Linux 构建流水线
     - name: build-linux
@@ -93,7 +122,28 @@ main:
             echo "=== Linux 打包产物 ==="
             find build-output -type f -name "*.AppImage" -o -name "*.deb" || true
 
-      # 保存构建产物
-      artifacts:
-        - build-output/**/*
+        - name: 创建 Release
+          type: git:release
+          options:
+            tag: "linux-latest"
+            title: "Linux 构建产物 - 最新版"
+            description: |
+              ## Linux 客户端构建产物
+
+              **构建信息**：
+              - 构建时间: $(date +"%Y-%m-%d %H:%M:%S")
+              - 分支: ${CNB_BRANCH}
+              - 提交: ${CNB_COMMIT_SHORT}
+
+              **下载说明**：
+              - AppImage: 无需安装，添加执行权限后直接运行
+              - deb: Debian/Ubuntu 系统使用 `dpkg -i` 安装
+
+        - name: 上传构建产物到 Release
+          image: cnbcool/attachments:latest
+          settings:
+            tag: "linux-latest"
+            files:
+              - build-output/*.AppImage
+              - build-output/*.deb
 
