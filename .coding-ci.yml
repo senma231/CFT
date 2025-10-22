@@ -56,6 +56,18 @@ main:
             mv windows-build.zip ..
             cd ..
 
+        - name: 创建或更新 Tag
+          script: |
+            echo "🏷️ 创建 Tag..."
+            git config user.name "CNB Bot"
+            git config user.email "cnb@bot.com"
+            # 删除本地和远程的旧 tag（如果存在）
+            git tag -d windows-latest || true
+            git push origin :refs/tags/windows-latest || true
+            # 创建新 tag
+            git tag -a windows-latest -m "Windows 构建产物 - $(date +"%Y-%m-%d %H:%M:%S")"
+            git push origin windows-latest
+
         - name: 创建 Release
           type: git:release
           options:
@@ -121,6 +133,18 @@ main:
           script: |
             echo "=== Linux 打包产物 ==="
             find build-output -type f -name "*.AppImage" -o -name "*.deb" || true
+
+        - name: 创建或更新 Tag
+          script: |
+            echo "🏷️ 创建 Tag..."
+            git config user.name "CNB Bot"
+            git config user.email "cnb@bot.com"
+            # 删除本地和远程的旧 tag（如果存在）
+            git tag -d linux-latest || true
+            git push origin :refs/tags/linux-latest || true
+            # 创建新 tag
+            git tag -a linux-latest -m "Linux 构建产物 - $(date +"%Y-%m-%d %H:%M:%S")"
+            git push origin linux-latest
 
         - name: 创建 Release
           type: git:release
