@@ -49,15 +49,14 @@ jobs:
 
       - name: 🗜️ 压缩构建产物
         run: |
-          cd build-output
-          Compress-Archive -Path win-unpacked -DestinationPath windows-build.zip
-          Move-Item windows-build.zip ..
+          cd build-output\win-unpacked
+          Compress-Archive -Path * -DestinationPath ..\..\CFT_windows_x64.zip
 
       - name: 📤 上传构建产物
         uses: actions/upload-artifact@v4
         with:
-          name: Cloudflare隧道管理器-Windows-x64
-          path: windows-build.zip
+          name: CFT_windows_x64
+          path: CFT_windows_x64.zip
           retention-days: 30
       
       - name: 🚀 创建 Release
@@ -66,14 +65,14 @@ jobs:
         with:
           tag_name: v${{ github.run_number }}
           name: Release v${{ github.run_number }}
-          files: windows-build.zip
+          files: CFT_windows_x64.zip
           draft: false
           prerelease: false
           body: |
             ## Cloudflare 隧道管理器
 
             ### 📦 下载
-            - **Windows 64位**: windows-build.zip
+            - **Windows 64位**: CFT_windows_x64.zip
 
             ### ✨ 功能特性
             - 隧道管理

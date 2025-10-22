@@ -40,18 +40,23 @@ jobs:
           dir build-output
           echo "=== win-unpacked content ==="
           dir build-output\win-unpacked
+          echo "=== Checking icon ==="
+          if (Test-Path "build-output\win-unpacked\Cloudflare隧道管理器.exe") {
+            Write-Host "✓ EXE file found" -ForegroundColor Green
+          } else {
+            Write-Host "✗ EXE file NOT found" -ForegroundColor Red
+          }
 
       - name: Compress Windows build
         run: |
-          cd build-output
-          Compress-Archive -Path win-unpacked -DestinationPath windows-build.zip
-          Move-Item windows-build.zip ..
+          cd build-output\win-unpacked
+          Compress-Archive -Path * -DestinationPath ..\..\CFT_windows_x64.zip
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-build
-          path: windows-build.zip
+          name: CFT_windows_x64
+          path: CFT_windows_x64.zip
           retention-days: 7
 
   build-linux:
@@ -83,13 +88,32 @@ jobs:
           echo "=== Build output ==="
           ls -lh build-output/
 
+      - name: Rename Linux artifacts
+        run: |
+          cd build-output
+          # Rename AppImage
+          if ls *.AppImage 1> /dev/null 2>&1; then
+            for file in *.AppImage; do
+              mv "$file" "CFT_linux_x64.AppImage"
+              echo "✓ Renamed to CFT_linux_x64.AppImage"
+            done
+          fi
+          # Rename deb
+          if ls *.deb 1> /dev/null 2>&1; then
+            for file in *.deb; do
+              mv "$file" "CFT_linux_x64.deb"
+              echo "✓ Renamed to CFT_linux_x64.deb"
+            done
+          fi
+          ls -lh
+
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: linux-build
+          name: CFT_linux_x64
           path: |
-            build-output/*.AppImage
-            build-output/*.deb
+            build-output/CFT_linux_x64.AppImage
+            build-output/CFT_linux_x64.deb
           retention-days: 7
 
   release:
@@ -101,20 +125,25 @@ jobs:
       - name: Download Windows artifact
         uses: actions/download-artifact@v4
         with:
-          name: windows-build
+          name: CFT_windows_x64
 
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
         with:
-          name: linux-build
+          name: CFT_linux_x64
+
+      - name: List downloaded files
+        run: |
+          echo "=== Downloaded artifacts ==="
+          ls -lh
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            windows-build.zip
-            *.AppImage
-            *.deb
+            CFT_windows_x64.zip
+            CFT_linux_x64.AppImage
+            CFT_linux_x64.deb
           draft: false
           prerelease: false
           generate_release_notes: true

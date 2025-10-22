@@ -68,6 +68,13 @@
       "output": "build-output",
       "buildResources": "assets"
     },
+    "extraResources": [
+      {
+        "from": "assets/icons",
+        "to": "assets/icons",
+        "filter": ["**/*"]
+      }
+    ],
     "files": [
       "src/main/**/*",
       "src/preload/**/*",
@@ -87,7 +94,8 @@
       ],
       "icon": "assets/icons/icon.ico",
       "requestedExecutionLevel": "asInvoker",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
     },
     "linux": {
       "target": [
