@@ -53,9 +53,6 @@ coverage/
 *.ps1
 test-icons.js
 
-# GitHub 相关文件（CODING 不需要）
-.github/
-
 # 开发文档（排除所有中文文档，只保留核心文档）
 *修复*.md
 *说明*.md

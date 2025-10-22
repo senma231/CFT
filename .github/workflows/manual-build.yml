@@ -1,0 +1,87 @@
+name: 手动打包
+
+on:
+  workflow_dispatch:  # 只允许手动触发
+    inputs:
+      create_release:
+        description: '是否创建 Release'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  build-windows:
+    name: 打包 Windows 版本
+    runs-on: windows-latest
+    
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 🔧 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: 📦 安装依赖
+        run: npm ci
+      
+      - name: 🎨 构建前端
+        run: npm run build:renderer
+
+      - name: 📦 打包 Windows 应用
+        run: npx electron-builder --win --x64
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      
+      - name: 📊 显示打包结果
+        run: |
+          Write-Host "=== 打包完成 ===" -ForegroundColor Green
+          Write-Host "=== win-unpacked 内容 ===" -ForegroundColor Yellow
+          Get-ChildItem build-output\win-unpacked -File | Select-Object -First 10 | ForEach-Object {
+            $size = [math]::Round($_.Length / 1MB, 2)
+            Write-Host "✓ $($_.Name) - ${size} MB" -ForegroundColor Cyan
+          }
+
+      - name: 🗜️ 压缩构建产物
+        run: |
+          cd build-output
+          Compress-Archive -Path win-unpacked -DestinationPath windows-build.zip
+          Move-Item windows-build.zip ..
+
+      - name: 📤 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cloudflare隧道管理器-Windows-x64
+          path: windows-build.zip
+          retention-days: 30
+      
+      - name: 🚀 创建 Release
+        if: github.event.inputs.create_release == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          files: windows-build.zip
+          draft: false
+          prerelease: false
+          body: |
+            ## Cloudflare 隧道管理器
+
+            ### 📦 下载
+            - **Windows 64位**: windows-build.zip
+
+            ### ✨ 功能特性
+            - 隧道管理
+            - 系统托盘支持
+            - 自动更新
+
+            ### 📝 更新日志
+            自动构建 #${{ github.run_number }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
