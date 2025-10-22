@@ -1432,6 +1432,8 @@ function createTray() {
             {
                 label: '退出',
                 click: () => {
+                    // 设置标志表示用户主动退出
+                    app.isQuitting = true;
                     app.quit();
                 }
             }
@@ -1474,6 +1476,7 @@ function createMenu() {
                     label: '退出',
                     accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
                     click: () => {
+                        app.isQuitting = true;
                         app.quit();
                     }
                 }
@@ -2057,6 +2060,12 @@ app.whenReady().then(() => {
 // 当所有窗口都被关闭时的处理
 // 注意：当窗口隐藏到托盘时，不应该退出应用
 app.on('window-all-closed', () => {
+    // 如果用户主动退出（通过托盘菜单），则退出应用
+    if (app.isQuitting) {
+        app.quit();
+        return;
+    }
+
     // macOS 上通常不退出应用
     if (process.platform === 'darwin') {
         return;

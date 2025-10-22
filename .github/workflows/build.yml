@@ -30,9 +30,19 @@ jobs:
         run: npm run build:renderer
 
       - name: Build Windows app
-        run: npx electron-builder --win --x64
+        run: |
+          echo "=== Building Windows app with icon ==="
+          echo "Icon file exists:"
+          if (Test-Path "assets/icons/icon.ico") {
+            Write-Host "✓ Icon file found" -ForegroundColor Green
+            Get-Item "assets/icons/icon.ico" | Select-Object Name, Length
+          } else {
+            Write-Host "✗ Icon file NOT found" -ForegroundColor Red
+          }
+          npx electron-builder --win --x64
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          DEBUG: electron-builder
 
       - name: List build output
         run: |
@@ -40,9 +50,16 @@ jobs:
           dir build-output
           echo "=== win-unpacked content ==="
           dir build-output\win-unpacked
-          echo "=== Checking icon ==="
-          if (Test-Path "build-output\win-unpacked\Cloudflare隧道管理器.exe") {
-            Write-Host "✓ EXE file found" -ForegroundColor Green
+          echo "=== Checking EXE files ==="
+          Get-ChildItem "build-output\win-unpacked" -Filter "*.exe" | ForEach-Object {
+            Write-Host "Found EXE: $($_.Name)" -ForegroundColor Green
+            Write-Host "  Size: $([math]::Round($_.Length / 1MB, 2)) MB"
+          }
+          echo "=== Checking if CloudflareTunnelManager.exe exists ==="
+          if (Test-Path "build-output\win-unpacked\CloudflareTunnelManager.exe") {
+            Write-Host "✓ CloudflareTunnelManager.exe found" -ForegroundColor Green
+          } elseif (Test-Path "build-output\win-unpacked\Cloudflare隧道管理器.exe") {
+            Write-Host "✓ Cloudflare隧道管理器.exe found" -ForegroundColor Green
           } else {
             Write-Host "✗ EXE file NOT found" -ForegroundColor Red
           }
