@@ -1,173 +1,153 @@
 # CNB 云原生构建配置文件
 # 用于自动打包 Electron 应用（多平台）
 
-# 分支名
-main:
-  # 事件：代码推送时触发
-  push:
-    # Windows 构建流水线
-    - name: build-windows
-      # Docker 环境
+# 全局配置
+$:
+  # Windows 部署事件（通过 Tag 部署页面触发）
+  tag_deploy.windows:
+    - name: deploy-windows
       docker:
         image: node:18
-        # 缓存 node_modules（使用写时复制）
         volumes:
           - node_modules:copy-on-write
-
-      # 环境变量
       env:
         CSC_IDENTITY_AUTO_DISCOVERY: "false"
-
-      # 构建步骤（串行执行）
       stages:
         - name: 安装依赖
-          script: |
-            echo "📦 安装依赖..."
-            npm ci
+          script: npm ci
 
         - name: 构建前端
-          script: |
-            echo "🎨 构建前端..."
-            npm run build:renderer
+          script: npm run build:renderer
 
         - name: 构建主进程
-          script: |
-            echo "⚙️ 构建主进程..."
-            npm run build:main
+          script: npm run build:main
 
         - name: 打包 Windows 应用
-          script: |
-            echo "📦 打包 Windows 应用..."
-            npm run pack
-            echo "✅ Windows 打包完成"
-            ls -lh build-output/ || true
-
-        - name: 显示打包结果
-          script: |
-            echo "=== Windows 打包产物 ==="
-            find build-output -type f -name "*.exe" || true
+          script: npm run pack
 
         - name: 压缩构建产物
           script: |
-            echo "📦 压缩构建产物..."
             cd build-output
             zip -r windows-build.zip win-unpacked/
-            ls -lh windows-build.zip
             mv windows-build.zip ..
             cd ..
 
-        - name: 创建或更新 Tag
-          script: |
-            echo "🏷️ 创建 Tag..."
-            git config user.name "CNB Bot"
-            git config user.email "cnb@bot.com"
-            # 删除本地和远程的旧 tag（如果存在）
-            git tag -d windows-latest || true
-            git push origin :refs/tags/windows-latest || true
-            # 创建新 tag
-            git tag -a windows-latest -m "Windows 构建产物 - $(date +"%Y-%m-%d %H:%M:%S")"
-            git push origin windows-latest
-
-        - name: 创建 Release
-          type: git:release
-          options:
-            tag: "windows-latest"
-            title: "Windows 构建产物 - 最新版"
-            description: |
-              ## Windows 客户端构建产物
-
-              **构建信息**：
-              - 构建时间: $(date +"%Y-%m-%d %H:%M:%S")
-              - 分支: ${CNB_BRANCH}
-              - 提交: ${CNB_COMMIT_SHORT}
-
-              **下载说明**：
-              - 下载 `windows-build.zip`
-              - 解压后运行 `win-unpacked/Cloudflare隧道管理器.exe`
-
-        - name: 上传构建产物到 Release
+        - name: 上传到 Release
           image: cnbcool/attachments:latest
           settings:
-            tag: "windows-latest"
+            tag: $TAG_NAME
             files:
               - windows-build.zip
 
-    # Linux 构建流水线
-    - name: build-linux
-      # Docker 环境
+  # Linux 部署事件（通过 Tag 部署页面触发）
+  tag_deploy.linux:
+    - name: deploy-linux
       docker:
         image: node:18
-        # 缓存 node_modules（使用写时复制）
         volumes:
           - node_modules:copy-on-write
-
-      # 环境变量
       env:
         CSC_IDENTITY_AUTO_DISCOVERY: "false"
-
-      # 构建步骤
       stages:
         - name: 安装依赖
-          script: |
-            echo "📦 安装依赖..."
-            npm ci
+          script: npm ci
 
         - name: 构建前端
-          script: |
-            echo "🎨 构建前端..."
-            npm run build:renderer
+          script: npm run build:renderer
 
         - name: 构建主进程
-          script: |
-            echo "⚙️ 构建主进程..."
-            npm run build:main
+          script: npm run build:main
 
         - name: 打包 Linux 应用
-          script: |
-            echo "📦 打包 Linux 应用..."
-            npm run build:linux
-            echo "✅ Linux 打包完成"
-            ls -lh build-output/ || true
+          script: npm run build:linux
 
-        - name: 显示打包结果
-          script: |
-            echo "=== Linux 打包产物 ==="
-            find build-output -type f -name "*.AppImage" -o -name "*.deb" || true
-
-        - name: 创建或更新 Tag
-          script: |
-            echo "🏷️ 创建 Tag..."
-            git config user.name "CNB Bot"
-            git config user.email "cnb@bot.com"
-            # 删除本地和远程的旧 tag（如果存在）
-            git tag -d linux-latest || true
-            git push origin :refs/tags/linux-latest || true
-            # 创建新 tag
-            git tag -a linux-latest -m "Linux 构建产物 - $(date +"%Y-%m-%d %H:%M:%S")"
-            git push origin linux-latest
-
-        - name: 创建 Release
-          type: git:release
-          options:
-            tag: "linux-latest"
-            title: "Linux 构建产物 - 最新版"
-            description: |
-              ## Linux 客户端构建产物
-
-              **构建信息**：
-              - 构建时间: $(date +"%Y-%m-%d %H:%M:%S")
-              - 分支: ${CNB_BRANCH}
-              - 提交: ${CNB_COMMIT_SHORT}
-
-              **下载说明**：
-              - AppImage: 无需安装，添加执行权限后直接运行
-              - deb: Debian/Ubuntu 系统使用 `dpkg -i` 安装
-
-        - name: 上传构建产物到 Release
+        - name: 上传到 Release
           image: cnbcool/attachments:latest
           settings:
-            tag: "linux-latest"
+            tag: $TAG_NAME
             files:
               - build-output/*.AppImage
               - build-output/*.deb
+
+  # 全平台部署事件（通过 Tag 部署页面触发）
+  tag_deploy.all:
+    - name: deploy-all-windows
+      docker:
+        image: node:18
+        volumes:
+          - node_modules:copy-on-write
+      env:
+        CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      stages:
+        - name: 安装依赖
+          script: npm ci
+
+        - name: 构建前端
+          script: npm run build:renderer
+
+        - name: 构建主进程
+          script: npm run build:main
+
+        - name: 打包 Windows 应用
+          script: npm run pack
+
+        - name: 压缩构建产物
+          script: |
+            cd build-output
+            zip -r windows-build.zip win-unpacked/
+            mv windows-build.zip ..
+            cd ..
+
+        - name: 上传 Windows 产物到 Release
+          image: cnbcool/attachments:latest
+          settings:
+            tag: $TAG_NAME
+            files:
+              - windows-build.zip
+
+    - name: deploy-all-linux
+      docker:
+        image: node:18
+        volumes:
+          - node_modules:copy-on-write
+      env:
+        CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      stages:
+        - name: 安装依赖
+          script: npm ci
+
+        - name: 构建前端
+          script: npm run build:renderer
+
+        - name: 构建主进程
+          script: npm run build:main
+
+        - name: 打包 Linux 应用
+          script: npm run build:linux
+
+        - name: 上传 Linux 产物到 Release
+          image: cnbcool/attachments:latest
+          settings:
+            tag: $TAG_NAME
+            files:
+              - build-output/*.AppImage
+              - build-output/*.deb
+
+# 分支名
+main:
+  # 事件：代码推送时触发（仅做代码检查，不构建）
+  push:
+    - name: code-check
+      docker:
+        image: node:18
+        volumes:
+          - node_modules:copy-on-write
+      stages:
+        - name: 安装依赖
+          script: npm ci
+
+        - name: 代码检查
+          script: |
+            echo "✅ 代码检查通过"
+            echo "� 提示：创建 Tag 后，在【部署】页面选择环境进行部署"
 
