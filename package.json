@@ -132,8 +132,6 @@
       "perMachine": false
     },
     "forceCodeSigning": false,
-    "electronDist": "node_modules/electron/dist",
-    "electronVersion": "38.3.0",
     "publish": null
   },
   "engines": {
