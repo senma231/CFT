@@ -63,20 +63,6 @@ jobs:
             Write-Host "✗ EXE file NOT found" -ForegroundColor Red
           }
 
-      - name: Force embed icon using rcedit
-        run: |
-          echo "=== Installing rcedit ==="
-          npm install -g rcedit
-          echo "=== Embedding icon into EXE ==="
-          $exePath = "build-output\win-unpacked\Cloudflare隧道管理器.exe"
-          $iconPath = "assets\icons\icon.ico"
-          if (Test-Path $exePath) {
-            rcedit $exePath --set-icon $iconPath
-            Write-Host "✓ Icon embedded successfully" -ForegroundColor Green
-          } else {
-            Write-Host "✗ EXE file not found, cannot embed icon" -ForegroundColor Red
-          }
-
       - name: Compress Windows build
         run: |
           cd build-output\win-unpacked
