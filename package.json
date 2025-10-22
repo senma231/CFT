@@ -93,7 +93,7 @@
           ]
         }
       ],
-      "icon": "assets/icons/icon.ico",
+      "icon": "assets/icons/icon.png",
       "requestedExecutionLevel": "asInvoker",
       "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
       "executableName": "Cloudflare隧道管理器"
