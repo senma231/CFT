@@ -1,12 +1,12 @@
 # CNB 云原生构建配置文件
-# 用于自动打包 Electron 应用
+# 用于自动打包 Electron 应用（多平台）
 
 # 分支名
 main:
   # 事件：代码推送时触发
   push:
-    # 流水线配置
-    - name: build-electron-app
+    # Windows 构建流水线
+    - name: build-windows
       # Docker 环境
       docker:
         image: node:18
@@ -35,17 +35,63 @@ main:
             echo "⚙️ 构建主进程..."
             npm run build:main
 
-        - name: 打包应用
+        - name: 打包 Windows 应用
           script: |
-            echo "📦 打包应用..."
+            echo "📦 打包 Windows 应用..."
             npm run pack
-            echo "✅ 打包完成"
+            echo "✅ Windows 打包完成"
             ls -lh build-output/ || true
 
         - name: 显示打包结果
           script: |
-            echo "=== 打包产物 ==="
-            find build-output -type f -name "*.exe" -o -name "*.zip" || true
+            echo "=== Windows 打包产物 ==="
+            find build-output -type f -name "*.exe" || true
+
+      # 保存构建产物
+      artifacts:
+        - build-output/**/*
+
+    # Linux 构建流水线
+    - name: build-linux
+      # Docker 环境
+      docker:
+        image: node:18
+        # 缓存 node_modules（使用写时复制）
+        volumes:
+          - node_modules:copy-on-write
+
+      # 环境变量
+      env:
+        CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      # 构建步骤
+      stages:
+        - name: 安装依赖
+          script: |
+            echo "📦 安装依赖..."
+            npm ci
+
+        - name: 构建前端
+          script: |
+            echo "🎨 构建前端..."
+            npm run build:renderer
+
+        - name: 构建主进程
+          script: |
+            echo "⚙️ 构建主进程..."
+            npm run build:main
+
+        - name: 打包 Linux 应用
+          script: |
+            echo "📦 打包 Linux 应用..."
+            npm run build:linux
+            echo "✅ Linux 打包完成"
+            ls -lh build-output/ || true
+
+        - name: 显示打包结果
+          script: |
+            echo "=== Linux 打包产物 ==="
+            find build-output -type f -name "*.AppImage" -o -name "*.deb" || true
 
       # 保存构建产物
       artifacts:
