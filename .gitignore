@@ -1,0 +1,81 @@
+# 依赖
+node_modules/
+
+# 构建输出
+build/
+build-output/
+dist/
+release/
+out/
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 临时文件
+*.tmp
+*.temp
+.cache/
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# Electron
+*.asar
+
+# 测试覆盖率
+coverage/
+.nyc_output/
+
+# 临时脚本和测试文件
+*.bat
+*.ps1
+test-icons.js
+
+# 开发文档（排除所有中文文档，只保留核心文档）
+*修复*.md
+*说明*.md
+*报告*.md
+*手册*.md
+*总结*.md
+*清单*.md
+*问题*.md
+*功能*.md
+*优化*.md
+*测试*.md
+*指南*.md
+*文档*.md
+Account_ID*.md
+Cloudflare*.md
+UI*.md
+GitHub-Actions*.md
+快速开始*.md
+推送到*.md
+准备完成*.md
+完整使用*.md
+项目交接*.md
+
+# 图片文件夹（开发文档的截图）
+image/
+
+# 临时文本文件
+*.txt
+!LICENSE.txt
+

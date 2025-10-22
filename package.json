@@ -1,0 +1,147 @@
+{
+  "name": "cloudflare-tunnel-manager",
+  "version": "2.0.0",
+  "description": "跨平台Cloudflare隧道管理器 - 基于Electron的现代桌面应用",
+  "main": "src/main/main.js",
+  "homepage": "./",
+  "author": {
+    "name": "Cloudflare Tunnel Manager Team",
+    "email": "support@cloudflaretunnelmanager.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "electron",
+    "cloudflare",
+    "tunnel",
+    "manager",
+    "cross-platform",
+    "desktop",
+    "networking",
+    "proxy"
+  ],
+  "scripts": {
+    "start": "electron .",
+    "dev": "concurrently \"npm run dev:renderer\" \"electron . --dev\"",
+    "dev:renderer": "webpack serve --config src/renderer/webpack.config.js",
+    "build": "npm run build:renderer && npm run build:main",
+    "build:renderer": "webpack --config src/renderer/webpack.config.js --mode production",
+    "build:main": "electron-builder",
+    "build:win": "npm run build && electron-builder --win",
+    "build:mac": "npm run build && electron-builder --mac",
+    "build:linux": "npm run build && electron-builder --linux",
+    "dist": "npm run build",
+    "pack": "electron-builder --dir",
+    "test": "jest",
+    "lint": "eslint src/**/*.js",
+    "lint:fix": "eslint src/**/*.js --fix",
+    "clean": "rimraf dist build"
+  },
+  "dependencies": {
+    "@popperjs/core": "^2.11.8",
+    "axios": "^1.12.2",
+    "bootstrap": "^5.3.8",
+    "electron-log": "^5.4.3",
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.6.2",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "copy-webpack-plugin": "^13.0.1",
+    "css-loader": "^6.11.0",
+    "electron": "^38.3.0",
+    "electron-builder": "^26.0.12",
+    "eslint": "^8.57.1",
+    "html-webpack-plugin": "^5.6.4",
+    "jest": "^29.7.0",
+    "rimraf": "^5.0.10",
+    "style-loader": "^3.3.4",
+    "webpack": "^5.102.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.2"
+  },
+  "build": {
+    "appId": "com.cloudflaretunnelmanager.app",
+    "productName": "Cloudflare隧道管理器",
+    "copyright": "Copyright © 2024 Cloudflare Tunnel Manager Team",
+    "directories": {
+      "output": "build-output",
+      "buildResources": "assets"
+    },
+    "files": [
+      "src/main/**/*",
+      "src/preload/**/*",
+      "build/**/*",
+      "assets/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "dir",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "signAndEditExecutable": false
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.png",
+      "category": "Network"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.icns",
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": true,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Cloudflare隧道管理器",
+      "perMachine": false
+    },
+    "forceCodeSigning": false,
+    "electronDist": "node_modules/electron/dist",
+    "electronVersion": "38.3.0",
+    "publish": {
+      "provider": "github",
+      "owner": "your-username",
+      "repo": "cloudflare-tunnel-manager"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
